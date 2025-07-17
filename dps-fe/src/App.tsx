@@ -20,42 +20,62 @@ export interface SensorData {
   oxid: number;
   createdDate: string;
 }
+interface EnvData {
+  temp: number;
+  humi: number;
+  illu: number;
+}
 
 function App() {
+  const [data, setData] = useState<number[]>([350.5, 25.3, 65.2, 8.1]); //Object.values()로 값 추출
+  const units: string[] = [" lux", "°C", "%", "%"];
   const [temp, setTemp] = useState<number[]>([13.5, 14.6, 10.5, 12.7, 13.8]);
   const [humi, setHumi] = useState<number[]>([21.1, 15.2, 31.3, 24.1, 11.0]);
   const [oxid, setOxid] = useState<number[]>([1.1, 1.2, 1.3, 1.1]);
   const [illu, setIllu] = useState<number[]>([
     270.1, 250.2, 300.3, 280.4, 290.1,
   ]);
+  function calcRisk({ temp, humi, illu }: EnvData): "안전" | "주의" | "위험" {
+    let score = 0;
+    if (temp < 18 || temp > 25) score += 1;
+    if (humi < 45 || humi > 60) score += 1;
+    if (illu < 100 || illu > 200) score += 1;
+    if (score === 0) return "안전";
+    if (score === 1) return "주의";
+    return "위험";
+  }
   const cardDatas: CardProps[] = [
     {
       Icon: SunIcon,
       title: "조도",
       sub1: "현재:",
       sub2: "적정:",
-      con2: "380 lux - 780 lux",
+      con2: "50 lux 이하",
     },
     {
       Icon: ThermometerIcon,
       title: "온도",
       sub1: "현재:",
       sub2: "적정:",
-      con2: "18°C - 25°C",
+      con2: "18°C - 22°C",
     },
     {
       Icon: DropletsIcon,
       title: "습도",
       sub1: "현재:",
       sub2: "적정:",
-      con2: "18% - 25%",
+      con2: "45% - 55%",
     },
     {
       Icon: WarningIcon,
       title: "위험도",
       sub1: "현재:",
       sub2: "상태:",
-      con2: "안전",
+      con2: calcRisk({
+        temp: data[1],
+        humi: data[2],
+        illu: data[0],
+      }),
     },
   ];
 
@@ -75,7 +95,6 @@ function App() {
           oxid: allRes[0].oxid,
         };
         setData(Object.values(formatAll));
-        console.log(Object.values(formatAll)[2]);
       }
 
       if (illuRes) setIllu(illuRes.illu);
@@ -90,9 +109,6 @@ function App() {
 
     return () => clearInterval(interval);
   }, []);
-
-  const [data, setData] = useState<number[]>([350.5, 25.3, 65.2, 8.1]); //Object.values()로 값 추출
-  const units: string[] = [" lux", "°C", "%", "%"];
 
   return (
     <Container>
